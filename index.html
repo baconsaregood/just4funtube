@@ -4,51 +4,38 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Just4FunTube</title>
-  <link href="https://vjs.zencdn.net/8.3.0/video-js.css" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div class="container">
-    <header>
-      <h1>Just4FunTube</h1>
-    </header>
-
-    <div id="auth-popup" class="popup">
-      <h2 id="auth-popup-title">Sign Up</h2>
-      <form id="auth-form">
-        <input type="text" id="auth-username" placeholder="Username" required>
-        <input type="password" id="auth-password" placeholder="Password" required>
-        <button type="submit" id="auth-submit-btn">Sign Up</button>
-      </form>
-      <button id="close-popup-btn">Close</button>
-      <p id="auth-error" style="color: red; display: none;">Invalid credentials or username already taken.</p>
-    </div>
-
-    <div id="auth-buttons">
-      <button id="sign-up-btn">Sign Up</button>
-      <button id="login-btn">Login</button>
-    </div>
-
-    <h2>Add a Video</h2>
-    <div id="create-channel">
-      <button id="create-channel-btn">Create Channel</button>
-    </div>
-    
-    <div id="video-upload-section" class="hidden">
-      <input type="text" id="video-url" placeholder="Paste Archive.org Video Link" />
-      <input type="text" id="channel-name" placeholder="Channel Name" />
-      <button id="add-video-btn">Add Video</button>
-    </div>
-
-    <div id="video-list"></div>
+  <div id="login-signup-container">
+    <h2 id="page-title">Sign Up / Login</h2>
+    <form id="login-form" onsubmit="event.preventDefault(); loginUser();">
+      <input type="text" id="auth-username" placeholder="Username" required>
+      <input type="password" id="auth-password" placeholder="Password" required>
+      <button type="submit" id="auth-button">Login</button>
+      <button type="button" id="toggle-to-signup">Sign Up</button>
+    </form>
+    <form id="signup-form" style="display: none;" onsubmit="event.preventDefault(); signUpUser();">
+      <input type="text" id="signup-username" placeholder="Username" required>
+      <input type="password" id="signup-password" placeholder="Password" required>
+      <input type="password" id="signup-confirm-password" placeholder="Confirm Password" required>
+      <button type="submit" id="signup-button">Sign Up</button>
+      <button type="button" id="toggle-to-login">Already have an account? Login</button>
+    </form>
   </div>
 
-  <!-- Firebase modular SDK -->
+  <div id="video-upload-container" style="display: none;">
+    <h2>Upload Video</h2>
+    <input type="text" id="video-url" placeholder="Paste Archive.org Video Link" required>
+    <button type="button" id="upload-button">Upload Video</button>
+    <button type="button" id="logout-button">Logout</button>
+  </div>
+
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
-    import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
-  
+    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
+
     const firebaseConfig = {
       apiKey: "AIzaSyC9bQyxF3ccUmNfKMyHcCTk7nYFuEzaP7M",
       authDomain: "just4funtube-4c080.firebaseapp.com",
@@ -59,117 +46,116 @@
     };
 
     const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+    const auth = getAuth();
+    const db = getFirestore();
 
     let currentUser = null;
 
-    // Sign Up Button Click
-    document.getElementById('sign-up-btn').addEventListener('click', () => {
-      document.getElementById('auth-popup').style.display = 'block';
-      document.getElementById('auth-popup-title').textContent = 'Sign Up';
-      document.getElementById('auth-submit-btn').textContent = 'Sign Up';
-    });
+    function toggleForms() {
+      const loginForm = document.getElementById("login-form");
+      const signupForm = document.getElementById("signup-form");
+      const pageTitle = document.getElementById("page-title");
 
-    // Login Button Click
-    document.getElementById('login-btn').addEventListener('click', () => {
-      document.getElementById('auth-popup').style.display = 'block';
-      document.getElementById('auth-popup-title').textContent = 'Login';
-      document.getElementById('auth-submit-btn').textContent = 'Login';
-    });
-
-    // Close the popup
-    document.getElementById('close-popup-btn').addEventListener('click', () => {
-      document.getElementById('auth-popup').style.display = 'none';
-    });
-
-    // Handle form submission for both Sign Up and Login
-    document.getElementById('auth-form').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const username = document.getElementById('auth-username').value;
-      const password = document.getElementById('auth-password').value;
-
-      if (document.getElementById('auth-submit-btn').textContent === 'Sign Up') {
-        try {
-          const userCredential = await createUserWithEmailAndPassword(auth, username, password);
-          currentUser = userCredential.user;
-          alert('Account created successfully');
-          document.getElementById('auth-popup').style.display = 'none';
-          checkForChannel(currentUser);
-        } catch (error) {
-          alert('Error creating account');
-        }
+      if (loginForm.style.display === "none") {
+        loginForm.style.display = "block";
+        signupForm.style.display = "none";
+        pageTitle.textContent = "Sign Up / Login";
       } else {
-        try {
-          const userCredential = await signInWithEmailAndPassword(auth, username, password);
+        loginForm.style.display = "none";
+        signupForm.style.display = "block";
+        pageTitle.textContent = "Sign Up";
+      }
+    }
+
+    function loginUser() {
+      const username = document.getElementById("auth-username").value;
+      const password = document.getElementById("auth-password").value;
+
+      signInWithEmailAndPassword(auth, username + "@just4funtube.com", password)
+        .then((userCredential) => {
           currentUser = userCredential.user;
-          alert('Logged in successfully');
-          document.getElementById('auth-popup').style.display = 'none';
-          checkForChannel(currentUser);
-        } catch (error) {
-          alert('Login failed');
-        }
-      }
-    });
-
-    document.getElementById('create-channel-btn').addEventListener('click', () => {
-      if (currentUser) {
-        document.getElementById('video-upload-section').classList.remove('hidden');
-      } else {
-        alert('You need to be logged in to create a channel');
-      }
-    });
-
-    document.getElementById('add-video-btn').addEventListener('click', async () => {
-      const videoUrl = document.getElementById('video-url').value;
-      const channelName = document.getElementById('channel-name').value;
-
-      if (videoUrl && channelName) {
-        const videoRef = collection(db, "videos");
-        await addDoc(videoRef, {
-          url: videoUrl,
-          channelName: channelName,
-          views: 0,
-          likes: 0,
-          dislikes: 0
+          document.getElementById("login-signup-container").style.display = "none";
+          document.getElementById("video-upload-container").style.display = "block";
+        })
+        .catch((error) => {
+          alert("Invalid username or password.");
         });
-        alert('Video added');
-        displayVideos();
-      } else {
-        alert('Please fill in all fields');
-      }
-    });
-
-    async function displayVideos() {
-      const querySnapshot = await getDocs(collection(db, "videos"));
-      const videoList = document.getElementById('video-list');
-      videoList.innerHTML = '';
-      querySnapshot.forEach((doc) => {
-        const video = doc.data();
-        const videoDiv = document.createElement('div');
-        videoDiv.innerHTML = `
-          <h3>${video.channelName}</h3>
-          <video class="video-js vjs-default-skin" controls>
-            <source src="${video.url}" type="video/mp4" />
-          </video>
-          <button class="like-btn">Like</button>
-          <button class="dislike-btn">Dislike</button>
-          <p>Likes: ${video.likes} | Dislikes: ${video.dislikes}</p>
-        `;
-        videoList.appendChild(videoDiv);
-      });
     }
 
-    function checkForChannel(user) {
-      const channelRef = collection(db, "channels").doc(user.uid);
-      channelRef.get().then((docSnap) => {
-        if (!docSnap.exists) {
-          alert('You don’t have a channel yet. Please create one first.');
+    function signUpUser() {
+      const username = document.getElementById("signup-username").value;
+      const password = document.getElementById("signup-password").value;
+      const confirmPassword = document.getElementById("signup-confirm-password").value;
+
+      if (password !== confirmPassword) {
+        alert("Passwords do not match.");
+        return;
+      }
+
+      createUserWithEmailAndPassword(auth, username + "@just4funtube.com", password)
+        .then((userCredential) => {
+          const user = userCredential.user;
+          setDoc(doc(db, "users", user.uid), {
+            username: username,
+            videosUploaded: 0,
+            accountCreated: new Date(),
+            videoCountToday: 0
+          });
+          alert("Account created successfully. You can now log in.");
+          toggleForms();
+        })
+        .catch((error) => {
+          alert("Error creating account.");
+        });
+    }
+
+    function uploadVideo() {
+      if (!currentUser) return;
+
+      const videoUrl = document.getElementById("video-url").value;
+
+      const userRef = doc(db, "users", currentUser.uid);
+      getDoc(userRef).then((docSnap) => {
+        if (docSnap.exists()) {
+          const userData = docSnap.data();
+          if (userData.videoCountToday >= 2) {
+            alert("You can only upload 2 videos per day.");
+            return;
+          }
+
+          updateDoc(userRef, {
+            videoCountToday: increment(1)
+          });
+
+          setDoc(doc(db, "videos", videoUrl), {
+            userId: currentUser.uid,
+            url: videoUrl,
+            uploadedAt: new Date()
+          });
+          alert("Video uploaded successfully.");
         }
       });
     }
 
-    displayVideos();
+    document.getElementById("toggle-to-signup").addEventListener("click", toggleForms);
+    document.getElementById("toggle-to-login").addEventListener("click", toggleForms);
+    document.getElementById("upload-button").addEventListener("click", uploadVideo);
+    document.getElementById("logout-button").addEventListener("click", () => {
+      signOut(auth).then(() => {
+        currentUser = null;
+        document.getElementById("login-signup-container").style.display = "block";
+        document.getElementById("video-upload-container").style.display = "none";
+      });
+    });
+
+    window.onload = () => {
+      const user = auth.currentUser;
+      if (user) {
+        currentUser = user;
+        document.getElementById("login-signup-container").style.display = "none";
+        document.getElementById("video-upload-container").style.display = "block";
+      }
+    };
   </script>
 </body>
 </html>
