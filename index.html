@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Just4funtube</title>
+  <link href="https://vjs.zencdn.net/8.3.0/video-js.css" rel="stylesheet" />
+</head>
+<body>
+  <h1>Just4funtube</h1>
+
+  <h2>add a video</h2>
+  <input type="text" id="video-url" placeholder="paste archive.org video link" />
+  <input type="text" id="channel-name" placeholder="channel name" />
+  <button id="add-video-btn">add video</button>
+
+  <div id="video-list"></div>
+
+  <script src="https://vjs.zencdn.net/8.3.0/video.min.js"></script>
+  <script type="module">
+
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js';
+    import { getFirestore, collection, addDoc, getDocs, updateDoc, doc, increment } from 'https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js';
+
+    const firebaseConfig = {
+  apiKey: "AIzaSyC9bQyxF3ccUmNfKMyHcCTk7nYFuEzaP7M",
+  authDomain: "just4funtube-4c080.firebaseapp.com",
+  projectId: "just4funtube-4c080",
+  storageBucket: "just4funtube-4c080.firebasestorage.app",
+  messagingSenderId: "787835459961",
+  appId: "1:787835459961:web:9462a891e51daedadcf7a8"
+    };
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    
+    document.getElementById("add-video-btn").onclick = async () => {
+      const videoUrl = document.getElementById("video-url").value;
+      const channelName = document.getElementById("channel-name").value;
+      
+      try {
+        const docRef = await addDoc(collection(db, "videos"), {
+          videoUrl: videoUrl,
+          channelName: channelName,
+          views: 0,
+          likes: 0,
+          dislikes: 0,
+          subscribers: []
+        });
+        console.log("Video added with ID: ", docRef.id);
+        displayVideos();
+      } catch (e) {
+        console.error("Error adding video: ", e);
+      }
+    };
+
+    async function displayVideos() {
+      const querySnapshot = await getDocs(collection(db, "videos"));
+      const videoList = document.getElementById("video-list");
+      videoList.innerHTML = '';
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        const videoElement = document.createElement("div");
+        videoElement.innerHTML = `
+          <h3>${data.channelName}</h3>
+          <video class="video-js vjs-default-skin" controls>
+            <source src="${data.videoUrl}" type="video/mp4" />
+          </video>
+          <p>Views: ${data.views} | Likes: ${data.likes} | Dislikes: ${data.dislikes}</p>
+          <button onclick="likeVideo('${doc.id}')">Like</button>
+          <button onclick="dislikeVideo('${doc.id}')">Dislike</button>
+          <button onclick="subscribeToChannel('${data.channelName}')">Subscribe</button>
+        `;
+        videoList.appendChild(videoElement);
+      });
+    }
+
+    async function likeVideo(videoId) {
+      const videoRef = doc(db, "videos", videoId);
+      await updateDoc(videoRef, {
+        likes: increment(1)
+      });
+      displayVideos();
+    }
+
+    async function dislikeVideo(videoId) {
+      const videoRef = doc(db, "videos", videoId);
+      await updateDoc(videoRef, {
+        dislikes: increment(1)
+      });
+      displayVideos();
+    }
+
+    async function subscribeToChannel(channelName) {
+      const querySnapshot = await getDocs(collection(db, "videos"));
+      querySnapshot.forEach((doc) => {
+        if (doc.data().channelName === channelName) {
+          const videoRef = doc(db, "videos", doc.id);
+          updateDoc(videoRef, {
+            subscribers: arrayUnion('user-id')
+          });
+        }
+      });
+    }
+
+    // Call displayVideos on page load
+    displayVideos();
+  </script>
+</body>
+</html>
