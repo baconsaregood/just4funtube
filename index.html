@@ -39,25 +39,23 @@
     <div id="video-list"></div>
   </div>
 
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js"></script>
+  <!-- Firebase modular SDK -->
   <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js';
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js';
-    import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, addDoc } from 'https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js';
-
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
+    import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
+  
     const firebaseConfig = {
       apiKey: "AIzaSyC9bQyxF3ccUmNfKMyHcCTk7nYFuEzaP7M",
       authDomain: "just4funtube-4c080.firebaseapp.com",
       projectId: "just4funtube-4c080",
-      storageBucket: "just4funtube-4c080.appspot.com",
+      storageBucket: "just4funtube-4c080.firebasestorage.app",
       messagingSenderId: "787835459961",
       appId: "1:787835459961:web:9462a891e51daedadcf7a8"
     };
 
     const app = initializeApp(firebaseConfig);
-    const auth = getAuth();
+    const auth = getAuth(app);
     const db = getFirestore(app);
 
     let currentUser = null;
@@ -148,9 +146,9 @@
     }
 
     function checkForChannel(user) {
-      const channelRef = doc(db, "channels", user.uid);
-      getDoc(channelRef).then((docSnap) => {
-        if (!docSnap.exists()) {
+      const channelRef = collection(db, "channels").doc(user.uid);
+      channelRef.get().then((docSnap) => {
+        if (!docSnap.exists) {
           alert('You don’t have a channel yet. Please create one first.');
         }
       });
