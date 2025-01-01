@@ -4,163 +4,108 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Just4FunTube</title>
-
   <link href="https://vjs.zencdn.net/8.3.0/video-js.css" rel="stylesheet" />
-  
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
+    /* Basic styling */
     body {
       font-family: Arial, sans-serif;
-      background-color: #f4f4f9;
-      color: #333;
-      line-height: 1.6;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 0;
     }
-
-    h1, h2 {
-      color: #333;
-      text-align: center;
-      margin-bottom: 20px;
-    }
-
-    h1 {
-      font-size: 3em;
-    }
-
     .container {
       width: 80%;
       margin: 0 auto;
       padding: 20px;
     }
-
-    .form-container {
-      background-color: #fff;
-      border-radius: 8px;
-      padding: 20px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      margin-bottom: 30px;
+    h1 {
+      text-align: center;
     }
-
-    .form-container input,
-    .form-container button {
+    #login-form, #channel-form {
+      background: #fff;
+      padding: 20px;
+      border-radius: 5px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      margin-bottom: 20px;
+    }
+    input, button {
       width: 100%;
       padding: 10px;
       margin: 10px 0;
-      font-size: 16px;
-      border: 2px solid #ddd;
+      border: 1px solid #ccc;
       border-radius: 5px;
     }
-
-    .form-container input:focus,
-    .form-container button:focus {
-      outline: none;
-      border-color: #007BFF;
-    }
-
-    .video-list {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 20px;
-      justify-content: center;
-    }
-
-    .video-item {
-      background-color: #fff;
-      border-radius: 8px;
-      padding: 15px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      width: 300px;
-      text-align: center;
-      overflow: hidden;
-      margin-bottom: 20px;
-    }
-
-    .video-item h3 {
-      font-size: 1.5em;
-      margin-bottom: 10px;
-    }
-
-    .video-item video {
-      width: 100%;
-      height: auto;
-      border-radius: 8px;
-      margin-bottom: 10px;
-    }
-
-    .video-item p {
-      font-size: 0.9em;
-      color: #555;
-    }
-
-    .video-item button {
-      background-color: #28a745;
+    button {
+      background-color: #4CAF50;
       color: white;
-      cursor: pointer;
-      margin: 5px;
+      border: none;
     }
-
-    .video-item button:hover {
-      background-color: #218838;
+    button:hover {
+      background-color: #45a049;
     }
-
-    .video-item button:disabled {
-      background-color: #ddd;
-    }
-
-    .error {
-      color: red;
-      text-align: center;
+    #video-list {
       margin-top: 20px;
     }
-
-    .success {
-      color: green;
-      text-align: center;
-      margin-top: 20px;
+    .video-item {
+      margin-bottom: 20px;
+      background: #fff;
+      padding: 10px;
+      border-radius: 5px;
+      box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
     }
   </style>
 </head>
 <body>
-
   <div class="container">
-    <h1>Just4FunTube</h1>
+    <h1>Welcome to Just4FunTube</h1>
 
-    <div id="auth-container" class="form-container">
-      <h2>Create or Login to Your Channel</h2>
-      <input type="text" id="channel-name" placeholder="Channel Name" />
-      <input type="password" id="password" placeholder="Password" />
-      <input type="password" id="pin" placeholder="Optional PIN (4 digits)" />
+    <!-- Login Form -->
+    <div id="login-form">
+      <h2>Login</h2>
+      <input type="email" id="login-email" placeholder="Email" />
+      <input type="password" id="login-password" placeholder="Password" />
+      <label><input type="checkbox" id="remember-me" /> Remember Me</label>
+      <button id="login-btn">Login</button>
+      <p id="login-error" style="color: red;"></p>
+      <p>Don't have an account? <a href="#" id="show-signup">Sign up here</a></p>
+    </div>
+
+    <!-- Sign Up Form -->
+    <div id="signup-form" style="display: none;">
+      <h2>Sign Up</h2>
+      <input type="email" id="signup-email" placeholder="Email" />
+      <input type="password" id="signup-password" placeholder="Password" />
+      <button id="signup-btn">Sign Up</button>
+      <p id="signup-error" style="color: red;"></p>
+    </div>
+
+    <!-- Create Channel Form -->
+    <div id="channel-form" style="display: none;">
+      <h2>Create Channel</h2>
+      <input type="text" id="channel-name" placeholder="Enter Channel Name" />
       <button id="create-channel-btn">Create Channel</button>
-      <button id="login-btn">Login to Channel</button>
-      <label><input type="checkbox" id="remember-me"> Remember Me</label>
-      <p id="auth-error" class="error"></p>
-      <p id="auth-success" class="success"></p>
+      <p id="channel-error" style="color: red;"></p>
     </div>
 
-    <div id="video-upload-container" class="form-container" style="display:none;">
-      <h2>Add a Video</h2>
+    <!-- Video Upload Form -->
+    <div id="video-upload-form" style="display: none;">
+      <h2>Upload a Video</h2>
       <input type="text" id="video-url" placeholder="Paste Archive.org Video Link" />
-      <button id="add-video-btn">Add Video</button>
-      <p id="upload-error" class="error"></p>
-      <p id="upload-success" class="success"></p>
+      <button id="upload-video-btn">Upload Video</button>
+      <p id="upload-error" style="color: red;"></p>
     </div>
 
-    <div id="video-list" class="video-list"></div>
+    <!-- Video Display -->
+    <div id="video-list"></div>
   </div>
 
+  <!-- Firebase Scripts -->
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js"></script>
 
   <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js';
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js';
-    import { getFirestore, collection, addDoc, getDocs, updateDoc, doc, increment, arrayUnion } from 'https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js';
-
+    // Firebase Configuration
     const firebaseConfig = {
       apiKey: "AIzaSyC9bQyxF3ccUmNfKMyHcCTk7nYFuEzaP7M",
       authDomain: "just4funtube-4c080.firebaseapp.com",
@@ -170,135 +115,107 @@
       appId: "1:787835459961:web:9462a891e51daedadcf7a8"
     };
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth();
-    const db = getFirestore(app);
+    // Initialize Firebase
+    const app = firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
 
-    let userChannel = null;
+    let currentUser = null;
 
-    document.getElementById('create-channel-btn').onclick = async () => {
-      const channelName = document.getElementById('channel-name').value.trim();
-      const password = document.getElementById('password').value.trim();
-      const pin = document.getElementById('pin').value.trim();
-      const rememberMe = document.getElementById('remember-me').checked;
+    // Show the login form on page load
+    document.getElementById("login-form").style.display = "block";
 
-      if (!channelName || !password) {
-        document.getElementById('auth-error').innerText = 'Please fill in all required fields!';
-        return;
-      }
+    // Login function
+    document.getElementById("login-btn").onclick = async () => {
+      const email = document.getElementById("login-email").value;
+      const password = document.getElementById("login-password").value;
+      const rememberMe = document.getElementById("remember-me").checked;
 
       try {
-        const userCredential = await createUserWithEmailAndPassword(auth, `${channelName}@platform.com`, password);
-        const user = userCredential.user;
-
-        await addDoc(collection(db, "channels"), {
-          channelName: channelName,
-          userId: user.uid,
-          pin: pin || null,
-          createdAt: new Date()
-        });
-
+        await auth.signInWithEmailAndPassword(email, password);
         if (rememberMe) {
-          localStorage.setItem('user-channel', JSON.stringify({ uid: user.uid, channelName }));
+          auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
         }
-
-        document.getElementById('auth-success').innerText = 'Channel Created Successfully!';
-        switchToVideoUploadForm(channelName);
+        currentUser = auth.currentUser;
+        showChannelForm();
       } catch (error) {
-        console.error("Error creating channel: ", error);
-        document.getElementById('auth-error').innerText = 'Error creating channel.';
+        document.getElementById("login-error").textContent = "Login failed: " + error.message;
       }
     };
 
-    document.getElementById('login-btn').onclick = async () => {
-      const channelName = document.getElementById('channel-name').value.trim();
-      const password = document.getElementById('password').value.trim();
+    // Sign up function
+    document.getElementById("signup-btn").onclick = async () => {
+      const email = document.getElementById("signup-email").value;
+      const password = document.getElementById("signup-password").value;
 
-      if (!channelName || !password) {
-        document.getElementById('auth-error').innerText = 'Please fill in both fields!';
+      try {
+        await auth.createUserWithEmailAndPassword(email, password);
+        document.getElementById("signup-form").style.display = "none";
+        document.getElementById("login-form").style.display = "block";
+      } catch (error) {
+        document.getElementById("signup-error").textContent = "Sign up failed: " + error.message;
+      }
+    };
+
+    // Create channel function
+    document.getElementById("create-channel-btn").onclick = async () => {
+      const channelName = document.getElementById("channel-name").value;
+
+      if (!channelName) {
+        document.getElementById("channel-error").textContent = "Channel name is required.";
         return;
       }
 
       try {
-        const userCredential = await signInWithEmailAndPassword(auth, `${channelName}@platform.com`, password);
-        const user = userCredential.user;
-
-        const channelDoc = await getDocs(collection(db, "channels"));
-        const channel = channelDoc.docs.find(doc => doc.data().userId === user.uid);
-
-        if (channel) {
-          document.getElementById('auth-success').innerText = 'Logged in successfully!';
-          switchToVideoUploadForm(channel.data().channelName);
-        } else {
-          document.getElementById('auth-error').innerText = 'Channel not found!';
-        }
+        await db.collection("channels").doc(currentUser.uid).set({ name: channelName });
+        showVideoUploadForm();
       } catch (error) {
-        console.error("Error logging in: ", error);
-        document.getElementById('auth-error').innerText = 'Invalid credentials.';
+        document.getElementById("channel-error").textContent = "Error creating channel: " + error.message;
       }
     };
 
-    function switchToVideoUploadForm(channelName) {
-      userChannel = channelName;
-      document.getElementById('auth-container').style.display = 'none';
-      document.getElementById('video-upload-container').style.display = 'block';
+    // Show video upload form after channel creation
+    function showChannelForm() {
+      document.getElementById("login-form").style.display = "none";
+      document.getElementById("channel-form").style.display = "block";
     }
 
-    document.getElementById('add-video-btn').onclick = async () => {
-      const videoUrl = document.getElementById('video-url').value.trim();
+    // Show the video upload form after channel creation
+    function showVideoUploadForm() {
+      document.getElementById("channel-form").style.display = "none";
+      document.getElementById("video-upload-form").style.display = "block";
+    }
 
-      if (!videoUrl || !userChannel) {
-        document.getElementById('upload-error').innerText = 'You must be logged in to upload a video!';
+    // Upload video function
+    document.getElementById("upload-video-btn").onclick = async () => {
+      const videoUrl = document.getElementById("video-url").value;
+      if (!videoUrl) {
+        document.getElementById("upload-error").textContent = "Please enter a video URL.";
         return;
       }
 
       try {
-        await addDoc(collection(db, "videos"), {
+        await db.collection("videos").add({
+          userId: currentUser.uid,
           videoUrl: videoUrl,
-          channelName: userChannel,
-          views: 0,
-          likes: 0,
-          dislikes: 0,
-          timestamp: new Date()
+          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
         });
-
-        document.getElementById('upload-success').innerText = 'Video added successfully!';
-        displayVideos();
-      } catch (e) {
-        console.error("Error adding video: ", e);
-        document.getElementById('upload-error').innerText = 'There was an error adding the video.';
+        document.getElementById("upload-error").textContent = "Video uploaded successfully!";
+      } catch (error) {
+        document.getElementById("upload-error").textContent = "Error uploading video: " + error.message;
       }
     };
 
-    async function displayVideos() {
-      const querySnapshot = await getDocs(collection(db, "videos"));
-      const videoList = document.getElementById('video-list');
-      videoList.innerHTML = '';
-
-      querySnapshot.forEach((doc) => {
-        const data = doc.data();
-        const videoElement = document.createElement('div');
-        videoElement.classList.add('video-item');
-        videoElement.innerHTML = `
-          <h3>${data.channelName}</h3>
-          <video class="video-js vjs-default-skin" controls>
-            <source src="${data.videoUrl}" type="video/mp4" />
-          </video>
-          <p>Views: ${data.views} | Likes: ${data.likes} | Dislikes: ${data.dislikes}</p>
-        `;
-        videoList.appendChild(videoElement);
-      });
-    }
-
-    window.onload = () => {
-      const savedUser = JSON.parse(localStorage.getItem('user-channel'));
-      if (savedUser) {
-        userChannel = savedUser.channelName;
-        switchToVideoUploadForm(userChannel);
+    // Listen for changes in the auth state
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        currentUser = user;
+        showChannelForm();
+      } else {
+        currentUser = null;
+        document.getElementById("login-form").style.display = "block";
       }
-    };
-
-    displayVideos();
+    });
   </script>
 </body>
 </html>
