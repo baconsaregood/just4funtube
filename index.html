@@ -5,177 +5,158 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Just4FunTube</title>
   <link href="https://vjs.zencdn.net/8.3.0/video-js.css" rel="stylesheet" />
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f4f4f4;
-      margin: 0;
-      padding: 0;
-    }
-    .container {
-      width: 80%;
-      margin: 0 auto;
-      padding: 20px;
-    }
-    h1 {
-      text-align: center;
-    }
-    #auth-form {
-      background: #fff;
-      padding: 20px;
-      border-radius: 5px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-      margin-bottom: 20px;
-      text-align: center;
-    }
-    input, button {
-      width: 100%;
-      padding: 10px;
-      margin: 10px 0;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-    }
-    button {
-      background-color: #4CAF50;
-      color: white;
-      border: none;
-    }
-    button:hover {
-      background-color: #45a049;
-    }
-    #auth-popup {
-      display: none;
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: white;
-      padding: 20px;
-      border-radius: 5px;
-      box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
-      z-index: 1000;
-    }
-    #auth-overlay {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.5);
-      z-index: 999;
-    }
-  </style>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <div class="container">
-    <h1>Welcome to Just4FunTube</h1>
-    <button id="open-auth-popup">Sign Up / Log In</button>
+    <header>
+      <h1>Just4FunTube</h1>
+      <button id="sign-up-login-btn">Sign Up / Login</button>
+    </header>
+
+    <div id="auth-popup" class="popup">
+      <h2>Sign Up / Login</h2>
+      <form id="auth-form">
+        <input type="text" id="auth-username" placeholder="Username" required>
+        <input type="password" id="auth-password" placeholder="Password" required>
+        <button type="submit">Submit</button>
+        <p id="auth-error" style="color: red; display: none;">Invalid credentials or username already taken.</p>
+      </form>
+      <button id="close-popup-btn">Close</button>
+    </div>
+
+    <h2>Add a Video</h2>
+    <div id="create-channel">
+      <button id="create-channel-btn">Create Channel</button>
+    </div>
+    
+    <div id="video-upload-section" class="hidden">
+      <input type="text" id="video-url" placeholder="Paste Archive.org Video Link" />
+      <input type="text" id="channel-name" placeholder="Channel Name" />
+      <button id="add-video-btn">Add Video</button>
+    </div>
+
     <div id="video-list"></div>
   </div>
 
-  <div id="auth-overlay"></div>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js"></script>
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js';
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js';
+    import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, addDoc } from 'https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js';
 
-  <div id="auth-popup">
-    <h2 id="auth-title">Sign Up</h2>
-    <form id="auth-form">
-      <input type="email" id="auth-email" placeholder="Email" required />
-      <input type="password" id="auth-password" placeholder="Password" required />
-      <label><input type="checkbox" id="remember-me" /> Remember Me</label>
-      <button type="submit" id="auth-btn">Sign Up</button>
-    </form>
-    <p id="auth-error" style="color: red;"></p>
-    <p id="auth-switch">
-      Already have an account? <a href="#" id="toggle-form">Log in here</a>
-    </p>
-  </div>
-
-  <script src="https://www.gstatic.com/firebasejs/8.3.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.3.0/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.3.0/firebase-firestore.js"></script>
-
-  <script>
     const firebaseConfig = {
       apiKey: "AIzaSyC9bQyxF3ccUmNfKMyHcCTk7nYFuEzaP7M",
       authDomain: "just4funtube-4c080.firebaseapp.com",
       projectId: "just4funtube-4c080",
-      storageBucket: "just4funtube-4c080.firebasestorage.app",
+      storageBucket: "just4funtube-4c080.appspot.com",
       messagingSenderId: "787835459961",
       appId: "1:787835459961:web:9462a891e51daedadcf7a8"
     };
 
-    firebase.initializeApp(firebaseConfig);
-
-    const auth = firebase.auth();
-    const db = firebase.firestore();
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth();
+    const db = getFirestore(app);
 
     let currentUser = null;
 
-    // Show authentication popup when button clicked
-    document.getElementById("open-auth-popup").onclick = () => {
-      document.getElementById("auth-overlay").style.display = "block";
-      document.getElementById("auth-popup").style.display = "block";
-    };
+    document.getElementById('sign-up-login-btn').addEventListener('click', () => {
+      document.getElementById('auth-popup').style.display = 'block';
+    });
 
-    // Hide popup when overlay is clicked
-    document.getElementById("auth-overlay").onclick = () => {
-      document.getElementById("auth-overlay").style.display = "none";
-      document.getElementById("auth-popup").style.display = "none";
-    };
+    document.getElementById('close-popup-btn').addEventListener('click', () => {
+      document.getElementById('auth-popup').style.display = 'none';
+    });
 
-    // Toggle between Sign Up and Log In
-    document.getElementById("toggle-form").onclick = () => {
-      const authTitle = document.getElementById("auth-title");
-      const authBtn = document.getElementById("auth-btn");
-
-      if (authTitle.textContent === "Log In") {
-        authTitle.textContent = "Sign Up";
-        authBtn.textContent = "Sign Up";
-        document.getElementById("auth-switch").innerHTML = 'Already have an account? <a href="#" id="toggle-form">Log in here</a>';
-      } else {
-        authTitle.textContent = "Log In";
-        authBtn.textContent = "Log In";
-        document.getElementById("auth-switch").innerHTML = 'Don\'t have an account? <a href="#" id="toggle-form">Sign up here</a>';
-      }
-    };
-
-    // Authentication button click (Sign Up or Log In)
-    document.getElementById("auth-form").onsubmit = async (e) => {
+    document.getElementById('auth-form').addEventListener('submit', async (e) => {
       e.preventDefault();
-
-      const email = document.getElementById("auth-email").value;
-      const password = document.getElementById("auth-password").value;
-      const rememberMe = document.getElementById("remember-me").checked;
+      const username = document.getElementById('auth-username').value;
+      const password = document.getElementById('auth-password').value;
 
       try {
-        if (document.getElementById("auth-title").textContent === "Log In") {
-          await auth.signInWithEmailAndPassword(email, password);
-        } else {
-          await auth.createUserWithEmailAndPassword(email, password);
-        }
-
-        if (rememberMe) {
-          auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
-        }
-
-        currentUser = auth.currentUser;
-        document.getElementById("auth-overlay").style.display = "none";
-        document.getElementById("auth-popup").style.display = "none";
-        alert("You are logged in successfully!");
+        const userCredential = await signInWithEmailAndPassword(auth, username, password);
+        currentUser = userCredential.user;
+        alert('Logged in successfully');
+        document.getElementById('auth-popup').style.display = 'none';
+        checkForChannel(currentUser);
       } catch (error) {
-        document.getElementById("auth-error").textContent = error.message;
-      }
-    };
-
-    // Auth state listener
-    auth.onAuthStateChanged(user => {
-      if (user) {
-        currentUser = user;
-        // Here you can load other content like videos for the logged-in user
-      } else {
-        currentUser = null;
+        const errorCode = error.code;
+        if (errorCode === 'auth/user-not-found') {
+          try {
+            const userCredential = await createUserWithEmailAndPassword(auth, username, password);
+            currentUser = userCredential.user;
+            alert('Account created successfully');
+            document.getElementById('auth-popup').style.display = 'none';
+            checkForChannel(currentUser);
+          } catch (error) {
+            alert('Error creating account');
+          }
+        } else {
+          alert('Login failed');
+        }
       }
     });
+
+    document.getElementById('create-channel-btn').addEventListener('click', () => {
+      if (currentUser) {
+        document.getElementById('video-upload-section').classList.remove('hidden');
+      } else {
+        alert('You need to be logged in to create a channel');
+      }
+    });
+
+    document.getElementById('add-video-btn').addEventListener('click', async () => {
+      const videoUrl = document.getElementById('video-url').value;
+      const channelName = document.getElementById('channel-name').value;
+
+      if (videoUrl && channelName) {
+        const videoRef = collection(db, "videos");
+        await addDoc(videoRef, {
+          url: videoUrl,
+          channelName: channelName,
+          views: 0,
+          likes: 0,
+          dislikes: 0
+        });
+        alert('Video added');
+        displayVideos();
+      } else {
+        alert('Please fill in all fields');
+      }
+    });
+
+    async function displayVideos() {
+      const querySnapshot = await getDocs(collection(db, "videos"));
+      const videoList = document.getElementById('video-list');
+      videoList.innerHTML = '';
+      querySnapshot.forEach((doc) => {
+        const video = doc.data();
+        const videoDiv = document.createElement('div');
+        videoDiv.innerHTML = `
+          <h3>${video.channelName}</h3>
+          <video class="video-js vjs-default-skin" controls>
+            <source src="${video.url}" type="video/mp4" />
+          </video>
+          <button class="like-btn">Like</button>
+          <button class="dislike-btn">Dislike</button>
+          <p>Likes: ${video.likes} | Dislikes: ${video.dislikes}</p>
+        `;
+        videoList.appendChild(videoDiv);
+      });
+    }
+
+    function checkForChannel(user) {
+      const channelRef = doc(db, "channels", user.uid);
+      getDoc(channelRef).then((docSnap) => {
+        if (!docSnap.exists()) {
+          alert('You don’t have a channel yet. Please create one first.');
+        }
+      });
+    }
+
+    displayVideos();
   </script>
 </body>
 </html>
