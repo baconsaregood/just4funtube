@@ -43,16 +43,6 @@
     button:hover {
       background-color: #45a049;
     }
-    #video-list {
-      margin-top: 20px;
-    }
-    .video-item {
-      margin-bottom: 20px;
-      background: #fff;
-      padding: 10px;
-      border-radius: 5px;
-      box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
-    }
     #auth-popup {
       display: none;
       position: fixed;
@@ -87,9 +77,9 @@
   <div id="auth-overlay"></div>
 
   <div id="auth-popup">
-    <h2>Sign Up / Log In</h2>
-    <input type="email" id="auth-email" placeholder="Email" />
-    <input type="password" id="auth-password" placeholder="Password" />
+    <h2 id="auth-title">Sign Up</h2>
+    <input type="email" id="auth-email" placeholder="Email" required />
+    <input type="password" id="auth-password" placeholder="Password" required />
     <label><input type="checkbox" id="remember-me" /> Remember Me</label>
     <button id="auth-btn">Sign Up</button>
     <p id="auth-error" style="color: red;"></p>
@@ -118,18 +108,21 @@
 
     let currentUser = null;
 
+    // Show authentication popup when button clicked
     document.getElementById("open-auth-popup").onclick = () => {
       document.getElementById("auth-overlay").style.display = "block";
       document.getElementById("auth-popup").style.display = "block";
     };
 
+    // Hide popup when overlay is clicked
     document.getElementById("auth-overlay").onclick = () => {
       document.getElementById("auth-overlay").style.display = "none";
       document.getElementById("auth-popup").style.display = "none";
     };
 
+    // Toggle between Sign Up and Log In
     document.getElementById("toggle-form").onclick = () => {
-      const authTitle = document.getElementById("auth-popup").querySelector("h2");
+      const authTitle = document.getElementById("auth-title");
       const authBtn = document.getElementById("auth-btn");
 
       if (authTitle.textContent === "Log In") {
@@ -143,13 +136,14 @@
       }
     };
 
+    // Authentication button click (Sign Up or Log In)
     document.getElementById("auth-btn").onclick = async () => {
       const email = document.getElementById("auth-email").value;
       const password = document.getElementById("auth-password").value;
       const rememberMe = document.getElementById("remember-me").checked;
 
       try {
-        if (document.getElementById("auth-popup").querySelector("h2").textContent === "Log In") {
+        if (document.getElementById("auth-title").textContent === "Log In") {
           await auth.signInWithEmailAndPassword(email, password);
         } else {
           await auth.createUserWithEmailAndPassword(email, password);
@@ -162,46 +156,17 @@
         currentUser = auth.currentUser;
         document.getElementById("auth-overlay").style.display = "none";
         document.getElementById("auth-popup").style.display = "none";
-        showVideoUploadForm();
+        alert("You are logged in successfully!");
       } catch (error) {
         document.getElementById("auth-error").textContent = error.message;
       }
     };
 
-    function showVideoUploadForm() {
-      const videoUploadForm = document.createElement('div');
-      videoUploadForm.innerHTML = `
-        <h2>Upload a Video</h2>
-        <input type="text" id="video-url" placeholder="Paste Archive.org Video Link" />
-        <button id="upload-video-btn">Upload Video</button>
-        <p id="upload-error" style="color: red;"></p>
-      `;
-      document.querySelector('.container').appendChild(videoUploadForm);
-
-      document.getElementById("upload-video-btn").onclick = async () => {
-        const videoUrl = document.getElementById("video-url").value;
-        if (!videoUrl) {
-          document.getElementById("upload-error").textContent = "Please enter a video URL.";
-          return;
-        }
-
-        try {
-          await db.collection("videos").add({
-            userId: currentUser.uid,
-            videoUrl: videoUrl,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-          });
-          document.getElementById("upload-error").textContent = "Video uploaded successfully!";
-        } catch (error) {
-          document.getElementById("upload-error").textContent = "Error uploading video: " + error.message;
-        }
-      };
-    }
-
+    // Auth state listener
     auth.onAuthStateChanged(user => {
       if (user) {
         currentUser = user;
-        showVideoUploadForm();
+        // Here you can load other content like videos for the logged-in user
       } else {
         currentUser = null;
       }
