@@ -78,21 +78,23 @@
 
   <div id="auth-popup">
     <h2 id="auth-title">Sign Up</h2>
-    <input type="email" id="auth-email" placeholder="Email" required />
-    <input type="password" id="auth-password" placeholder="Password" required />
-    <label><input type="checkbox" id="remember-me" /> Remember Me</label>
-    <button id="auth-btn">Sign Up</button>
+    <form id="auth-form">
+      <input type="email" id="auth-email" placeholder="Email" required />
+      <input type="password" id="auth-password" placeholder="Password" required />
+      <label><input type="checkbox" id="remember-me" /> Remember Me</label>
+      <button type="submit" id="auth-btn">Sign Up</button>
+    </form>
     <p id="auth-error" style="color: red;"></p>
     <p id="auth-switch">
       Already have an account? <a href="#" id="toggle-form">Log in here</a>
     </p>
   </div>
 
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.3.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.3.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.3.0/firebase-firestore.js"></script>
 
-  <script type="module">
+  <script>
     const firebaseConfig = {
       apiKey: "AIzaSyC9bQyxF3ccUmNfKMyHcCTk7nYFuEzaP7M",
       authDomain: "just4funtube-4c080.firebaseapp.com",
@@ -102,7 +104,8 @@
       appId: "1:787835459961:web:9462a891e51daedadcf7a8"
     };
 
-    const app = firebase.initializeApp(firebaseConfig);
+    firebase.initializeApp(firebaseConfig);
+
     const auth = firebase.auth();
     const db = firebase.firestore();
 
@@ -137,7 +140,9 @@
     };
 
     // Authentication button click (Sign Up or Log In)
-    document.getElementById("auth-btn").onclick = async () => {
+    document.getElementById("auth-form").onsubmit = async (e) => {
+      e.preventDefault();
+
       const email = document.getElementById("auth-email").value;
       const password = document.getElementById("auth-password").value;
       const rememberMe = document.getElementById("remember-me").checked;
